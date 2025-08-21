@@ -1,5 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import ReactFlow, { Background, BackgroundVariant, Controls, MiniMap, ReactFlowProvider, useReactFlow } from 'reactflow';
+import ReactFlow, { 
+  Background, 
+  BackgroundVariant, 
+  Controls, 
+  MiniMap, 
+  ReactFlowProvider, 
+  useReactFlow, 
+  Edge, 
+  Node 
+} from 'reactflow';
 import 'reactflow/dist/style.css';
 import './styles.css';
 
@@ -38,7 +47,6 @@ const Canvas: React.FC = () => {
 
   const { project } = useReactFlow();
 
-  // Handle node selection to toggle Settings/Nodes panels
   const handleNodeClick = useCallback((_evt: React.MouseEvent, node: { id: string }) => {
     setSelectedNodeId(node.id);
   }, [setSelectedNodeId]);
@@ -47,7 +55,6 @@ const Canvas: React.FC = () => {
     setSelectedNodeId(undefined);
   }, [setSelectedNodeId]);
 
-  // DnD: allow dropping our node type onto canvas
   const onDrop = useCallback((event: React.DragEvent) => {
     event.preventDefault();
 
@@ -65,19 +72,17 @@ const Canvas: React.FC = () => {
     } else if (type === 'conditionalNode') {
       addConditionalNode(position, 'Condition');
     } else if (type === 'startNode') {
-      // Represent Start as a textNode with label Start-like behavior not needed. We'll control with type.
       useFlowStore.setState((s) => ({ nodes: s.nodes.concat({ id: crypto.randomUUID().slice(0,8), type: 'startNode' as any, position, data: { text: 'Start' } as any }) }));
     } else if (type === 'endNode') {
       useFlowStore.setState((s) => ({ nodes: s.nodes.concat({ id: crypto.randomUUID().slice(0,8), type: 'endNode' as any, position, data: { text: 'End' } as any }) }));
     }
-  }, [addTextNode, project]);
+  }, [addTextNode, addConditionalNode, project]);
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
   }, []);
 
-  // Keyboard shortcuts
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
@@ -103,7 +108,6 @@ const Canvas: React.FC = () => {
     return () => window.removeEventListener('keydown', onKey);
   }, [deleteSelectedNode, duplicateSelectedNode, undo, redo]);
 
-  // Validate: multiple roots, empty text, cycles, exactly one Start, at least one End, and reachability
   const handleSave = useCallback(() => {
     const nodesCount = nodes.length;
     const rootNodes = nodes.filter((n) => edges.every((e) => e.target !== n.id));
@@ -111,11 +115,11 @@ const Canvas: React.FC = () => {
 
     const emptyTexts = nodes.some((n) => String((n.data as any)?.text ?? '').trim().length === 0);
 
-    // Cycle detection via DFS
     const adjacency: Record<string, string[]> = {};
     nodes.forEach((n) => { adjacency[n.id] = []; });
     edges.forEach((e) => { if (e.source && e.target) adjacency[e.source].push(e.target); });
-    const visited: Record<string, number> = {}; // 0=unvisited,1=visiting,2=visited
+
+    const visited: Record<string, number> = {};
     let hasCycle = false;
     const dfs = (id: string) => {
       if (visited[id] === 1) { hasCycle = true; return; }
@@ -129,7 +133,6 @@ const Canvas: React.FC = () => {
     const startCount = nodes.filter((n) => n.type === 'startNode').length;
     const endCount = nodes.filter((n) => n.type === 'endNode').length;
 
-    // Reachability from Start (if Start exists)
     let unreachable = false;
     if (startCount === 1) {
       const startId = nodes.find((n) => n.type === 'startNode')!.id;
@@ -174,7 +177,6 @@ const Canvas: React.FC = () => {
     reader.onload = () => {
       try {
         const parsed = JSON.parse(String(reader.result)) as { nodes: Node[]; edges: Edge[] };
-        // Replace store state
         useFlowStore.setState({ nodes: parsed.nodes as any, edges: parsed.edges });
       } catch (e) {
         setSaveIsError(true);
@@ -245,5 +247,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-
-
