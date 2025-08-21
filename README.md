@@ -1,5 +1,7 @@
 # BiteSpeed Chatbot Flow Builder
 
+🚀 **Live Demo:** [https://jolly-shortbread-9cf373.netlify.app/](https://jolly-shortbread-9cf373.netlify.app/)
+
 A simple, extensible chatbot flow builder built with React, TypeScript, Vite, and React Flow.
 
 ## Quick start
@@ -12,7 +14,6 @@ npm run dev
 # production
 npm run build
 npm run preview
-```
 
 ## Features
 - Text Node: drag from Nodes Panel, edit text in Settings Panel
