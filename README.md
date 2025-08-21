@@ -62,11 +62,3 @@ const nodeTypes = { ...existing, yourNode: YourNode } as const;
   "edges": [{ "id": "e1-2", "source": "1", "target": "2", "label": "Yes" }]
 }
 ```
-
-## Scripts
-- dev: start Vite
-- build: type-check + build
-- preview: preview build
-
-## License
-MIT
